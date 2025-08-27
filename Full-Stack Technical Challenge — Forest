@@ -1,0 +1,90 @@
+Full-Stack Technical Challenge — Forest BD Viewer
+ Goal
+Your mission is to build a full-stack geospatial application that allows authenticated users to 
+visualize and interact with French forest data. The application should expose layers from the 
+BD Forêt® database and integrate basic spatial analysis. 
+ Core Features
+You are free to choose your preferred stack (frontend/backend) and architecture for this 
+exercise. For context, here’s what we use at Symbiose:
+Frontend : Typescript, Next.js,
+Backend : Nest.js, TypeORM
+Architecture : GraphQl, microservices architecture, Turborepo, RGPC, Kafka
+DB : Postgresql & PostGis, Redis
+1. Authentication
+• Implement user registration, login, and logout, and the requirements you think 
+necessary.
+2. Interactive Mapping Interface
+• Map display using Mapbox GL JS.
+• Show forest layers from BD Forêt.
+• Let users click on a region → department -> commune -> lieuxdit to display BD Foret 
+data only relevant zone (avoid full load).
+• Visualize a layer of BD forêt data (=tree species mapping) and a layer of parcelle 
+cadastre (if only when sufficiently zoomed in).
+• Add relevant filters, buttons, or controls to optimize user experience.
+3. Backend
+• Set up APIs to manage geospatial data and communicate with the frontend.
+• Use TypeORM and GraphQL (or another approach if justified) to implement CRUD 
+operations for the users table.
+• For each user, store the last map view state (position, zoom, filters). When the user 
+logs in again, the map should return to this saved state.
+4. Deployment (optional but appreciated)
+If you can, please deploy. If deployment is not feasible in time, a working local setup via 
+Docker is also fine.
+Please include deployment URLs and credentials (if needed) in your README.
+ Required Datasets
+You will work with official open French geospatial data:
+ BD Forêt® V2 – Forest Inventory (IGN)
+• https://geoservices.ign.fr/bdforet#telechargementv2
+ French Cadastre – Parcel Data (Optional)
+• https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/
+• Here is an example : https://cadastre.data.gouv.fr/map?style=ortho
+• Useful for overlaying land parcels or ownership boundaries
+You're free to use a subset of data for prototyping (e.g., 1 or 2 departments), as long as your 
+backend could scale.
+ 
+ Bonus Features (Optional)
+Bonus A — Polygon Drawing Tool
+• Let users draw a polygon on the map.
+• On submit, send it to the backend and return stats:
+o Size of hectares of the polygon 
+o Parcel Name in the polygons 
+o Types of tree species in the polygon and their respective surface areas (in 
+hectares)
+Bonus B — LiDAR Analysis (Advanced)
+• From a drawn polygon, compute the Canopy Height Model derived from LIDAR HD 
+data points relevant to this polygon. 
+o Canopy Height Model = MNS (Modèle Numérique de Surface) - MNT (Modèle 
+Numérique de Terrain)
+• You can retrieve the MNS and MNT data from:
+o https://diffusion-lidarhd.ign.fr/ and select look at “Produits Derivés” for MNS 
+and MNT : 
+o OR https://forge.inrae.fr/lidar/lidarHD ( you can access the tutorial here for 
+MNS & MNS)
+• Generate a Canopy Height Model = MNS - MNT
+• Return:
+o Canopy Height Model overlay the Map Displayed + Basic stats (min/max/mean 
+height
+ Deliverables
+Please share the following:
+1. Git repository with:
+o Source code (frontend + backend)
+o Docker + Docker Compose config
+o SQL files or scripts to import and index the datasets
+o Bonus: scripts for LiDAR processing (if Bonus B implemented)
+2. README including:
+o Setup instructions to run the app locally 
+o Description of APIs / GraphQL schema
+o Any assumptions or simplifications made
+3. Optionally: a short screen recording (max 5 min) or a few screenshots demonstrating:
+o Auth + map viewAuthentication flow
+o Map view with region/department filtering
+o Polygon query results
+o Bonus features if implemented
+ Time Estimate
+• You should plan for 2 to 3 days of focused work for the core features.
+• Bonus features (polygon queries, LiDAR) are appreciated, but optional.
+If you're short on time, feel free to focus on clean code and architecture over completeness.
+Please count the number of hours you have spent on it, so you can put also in the README.
+ Questions?
+If anything is unclear, feel free to reach out. We’re looking forward to seeing how you 
+approach the challenge
