@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
-import { fetchBDForetData, fetchCadastralData } from '../services/ignService';
+import { fetchForestData, fetchCadastralData } from '../services/ignService';
 import Supercluster from 'supercluster';
 
 // Define the SubmitPolygonResponse interface
@@ -104,7 +104,6 @@ interface PolygonStats {
 }
 
 export default function ForestMap({ 
-  forestData = [], // Provide default empty array
   selectedData, 
   onDataSelect,
   filters = {},
@@ -116,12 +115,14 @@ export default function ForestMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
   const [hoveredData, setHoveredData] = useState<ForestData | null>(null);
+  const [forestData, setForestData] = useState<ForestData[]>([]); // Add state for forestData
   const [searchQuery, setSearchQuery] = useState("");
   const [clusters, setClusters] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [navigation, setNavigation] = useState<HierarchicalNavigation>({});
   const [zoomLevel, setZoomLevel] = useState<number>(5);
   const [polygonStats, setPolygonStats] = useState<PolygonStats | null>(null);
+  const [cadastralData, setCadastralData] = useState<any[]>([]);
 
   const SUBMIT_POLYGON_MUTATION = gql`
     mutation SubmitPolygon($geojson: String!) {
@@ -273,12 +274,8 @@ export default function ForestMap({
     if (!mapInstance.current) return;
 
     const bounds = mapInstance.current.getBounds();
-    fetchCadastralData({
-      north: bounds.getNorth(),
-      south: bounds.getSouth(),
-      east: bounds.getEast(),
-      west: bounds.getWest()
-    }).then(data => {
+    fetchCadastralData()
+    .then(data => {
       if (mapInstance.current?.getSource('cadastral-source')) {
         (mapInstance.current.getSource('cadastral-source') as maplibregl.GeoJSONSource)
           .setData(data);
@@ -395,12 +392,7 @@ export default function ForestMap({
         const bounds = mapInstance.current?.getBounds();
         if (bounds) {
           try {
-            const cadastralData = await fetchCadastralData({
-              north: bounds.getNorth(),
-              south: bounds.getSouth(),
-              east: bounds.getEast(),
-              west: bounds.getWest()
-            });
+            const cadastralData = await fetchCadastralData();
 
             if (mapInstance.current?.getSource('cadastral-source')) {
               (mapInstance.current.getSource('cadastral-source') as maplibregl.GeoJSONSource)
@@ -576,133 +568,34 @@ export default function ForestMap({
     if (!mapRef.current || mapInstance.current) return;
 
     try {
-      // Initialize MapLibre GL JS map
       mapInstance.current = new maplibregl.Map({
         container: mapRef.current,
-        style: 'https://demotiles.maplibre.org/style.json',
-        center: (mapPosition && mapPosition.lng && mapPosition.lat) ? [mapPosition.lng, mapPosition.lat] : (mapStateData?.getMapState?.mapPosition || [2.2137, 46.2276]),
-        zoom: mapZoom ?? mapStateData?.getMapState?.mapZoom ?? 5,
+        style: 'https://demotiles.maplibre.org/style.json', // Vérifiez que cette URL est correcte
+        center: mapPosition ? [mapPosition.lng, mapPosition.lat] : [2.2137, 46.2276],
+        zoom: mapZoom ?? 5,
       });
-
-      // Check if map was initialized correctly
-      if (!mapInstance.current) {
-        throw new Error('Failed to initialize map');
-      }
 
       mapInstance.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-      // Add forest data markers with null checks
-      forestData.forEach((forest) => {
-        if (forest?.coordinates?.lat && forest?.coordinates?.lng) {
-          const marker = new maplibregl.Marker()
-            .setLngLat([forest.coordinates.lng, forest.coordinates.lat])
-            .setPopup(
-              new maplibregl.Popup().setHTML(
-                `<strong>${forest.treeSpecies || 'Unknown species'}</strong><br>Surface: ${forest.area || 'N/A'} ha`
-              )
-            );
-          marker.addTo(mapInstance.current!);
-        }
+      mapInstance.current.on('error', (e) => {
+        console.error('MapLibre Error:', e);
+        setError('Erreur lors du chargement de la carte.');
       });
 
-      // Run setup and add controls once the map style is fully loaded.
-      // Important: adding sources/layers or MapboxDraw before style load can cause errors
-      // (and mapbox:// vector URLs are not supported by MapLibre). We therefore
-      // perform IGN layer setup and draw control initialization inside the 'load' event.
       mapInstance.current.on('load', () => {
-        try {
-          // Setup IGN WMS / WFS layers (uses our setupIGNLayers helper)
-          setupIGNLayers();
-
-          // Initialize MapboxDraw after style is ready to avoid invalid expression errors
-          const draw = new MapboxDraw({
-            displayControlsDefault: false,
-            controls: {
-              polygon: true,
-              trash: true,
-            },
-          });
-          mapInstance.current?.addControl(draw);
-
-          // Listen for draw.create events (register handler here since draw exists now)
-          mapInstance.current?.on('draw.create', (e: any) => {
-            if (e.features?.[0]) {
-              const feature = e.features[0];
-              const geojsonStr = JSON.stringify(feature);
-
-              submitPolygon({ variables: { geojson: geojsonStr } })
-                .then((res) => {
-                  const stats = res?.data?.submitPolygon;
-                  if (stats) setPolygonStats(stats);
-                })
-                .catch(error => {
-                  console.error('Error submitting polygon:', error);
-                  alert('Failed to submit polygon');
-                });
-            }
-          });
-
-          // Sanitize any MapboxDraw-added layer paint expressions that MapLibre rejects.
-          // MapboxDraw may add line-dasharray as a nested numeric array; MapLibre requires
-          // literal arrays expressed as ["literal", [...]] when parsing style expressions.
-          // Corriger les propriétés de style incompatibles ajoutées par MapboxDraw
-const style = mapInstance.current?.getStyle();
-if (style?.layers && mapInstance.current) {
-  style.layers.forEach((layer: any) => {
-    if (layer?.id && layer.id.startsWith('gl-draw')) {
-      try {
-        const dash = mapInstance.current!.getPaintProperty(layer.id, 'line-dasharray');
-        if (Array.isArray(dash)) {
-          // MapLibre attend ["literal", [..]] et pas [..]
-          mapInstance.current!.setPaintProperty(layer.id, 'line-dasharray', ["literal", dash]);
-        }
-      } catch (err) {
-        // ignorer les erreurs sur les couches qui n'ont pas line-dasharray
-      }
-    }
-  });
-}
-        } catch (error) {
-          console.error('Error during map load setup:', error);
-        }
+        console.log('Map loaded successfully');
+        setupIGNLayers();
       });
-
-      mapInstance.current.on('moveend', () => {
-        if (onMapStateChange && mapInstance.current) {
-          const center = mapInstance.current.getCenter();
-          const zoom = mapInstance.current.getZoom();
-          onMapStateChange({
-            mapPosition: { lat: center.lat, lng: center.lng },
-            mapZoom: zoom
-          });
-        }
-      });
-
-      mapInstance.current.on('zoomend', () => {
-        if (onMapStateChange && mapInstance.current) {
-          const center = mapInstance.current.getCenter();
-          const zoom = mapInstance.current.getZoom();
-          onMapStateChange({
-            mapPosition: { lat: center.lat, lng: center.lng },
-            mapZoom: zoom
-          });
-        }
-      });
-
     } catch (error) {
-      console.error('Error initializing map:', error);
+      console.error('Error initializing MapLibre:', error);
+      setError('Erreur lors de l\'initialisation de la carte.');
     }
 
     return () => {
-      try {
-        mapInstance.current?.remove();
-      } catch (error) {
-        console.error('Error cleaning up map:', error);
-      } finally {
-        mapInstance.current = null;
-      }
+      mapInstance.current?.remove();
+      mapInstance.current = null;
     };
-  }, [forestData, mapStateData, SAVE_MAP_STATE, submitPolygon, setupIGNLayers, fetchForestsByBBox, mapPosition, mapZoom, onMapStateChange]);
+  }, [mapPosition, mapZoom, setupIGNLayers]);
 
   // Regrouper les données par région pour l'affichage
   const dataByRegion = forestData.reduce((acc, data) => {
@@ -754,6 +647,23 @@ if (style?.layers && mapInstance.current) {
       })(),
     }));
   };
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const forestData = await fetchForestData(filters);
+        setForestData(forestData);
+
+        const cadastralData = await fetchCadastralData();
+        setCadastralData(cadastralData);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setError('Erreur lors du chargement des données.');
+      }
+    }
+
+    loadData();
+  }, [filters]);
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">

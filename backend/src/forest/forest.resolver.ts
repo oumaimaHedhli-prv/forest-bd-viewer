@@ -14,6 +14,7 @@ import { ForestService } from './forest.service';
 import { ForestData } from '../entities/forest-data.entity';
 import { ForestFilterInput, PolygonStats } from '../common/dto/forest.dto';
 import { BdForet } from '../entities/forest-data.entity';
+import { Cadastre } from '../entities/cadastre.entity';
 
 @ObjectType()
 export class ForestStatistics {
@@ -127,6 +128,11 @@ export class ForestResolver {
     }
     const rows: ForestData[] = await this.forestService.findByPolygon(parsed);
     return rows || [];
+  }
+
+  @Query(() => [Cadastre])
+  async cadastralData(): Promise<Cadastre[]> {
+    return this.forestService.findAllCadastre();
   }
 }
 

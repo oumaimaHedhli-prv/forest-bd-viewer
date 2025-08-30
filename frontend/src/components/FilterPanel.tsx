@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { GET_DEPARTMENTS, GET_COMMUNES, GET_TREE_SPECIES, GET_LIEUX_DITS } from '@/graphql/queries';
 
-interface Region {
-  name: string;
-}
+
 
 interface Department {
   name: string;
@@ -24,7 +22,7 @@ interface LieuxDit {
 }
 
 interface FilterPanelProps {
-  regions: Region[];
+  regions: string[];
   currentFilters: {
     region?: string;
     department?: string;
@@ -36,6 +34,7 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({ regions, currentFilters, onFiltersChange }: FilterPanelProps) {
+  console.log("regions", regions)
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [selectedCommune, setSelectedCommune] = useState<string>('');
@@ -174,9 +173,9 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
           >
             <option value="">Toutes les régions</option>
             {
-            regions.map((region: Region, i: number) => (
-              <option key={`${region.name ?? 'region'}-${i}`} value={region.name}>
-                {region?.name}
+            regions.map((region: string, i: number) => (
+              <option key={`${region?? 'region'}-${i}`} value={region}>
+                {region}
               </option>
             ))}
           </select>

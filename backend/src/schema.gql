@@ -7,6 +7,16 @@ type AuthPayload {
   user: User!
 }
 
+type Cadastre {
+  commune: String!
+  department: String!
+  description: String
+  geometry: JSON
+  id: ID!
+  lieuxdit: String!
+  region: String!
+}
+
 input CreateUserInput {
   email: String
   firstName: String!
@@ -85,6 +95,7 @@ type PolygonStats {
 }
 
 type Query {
+  cadastralData: [Cadastre!]!
   communes(department: String): [String!]!
   departments(region: String): [String!]!
   forestStatistics(filters: ForestFilterInput): ForestStatistics!

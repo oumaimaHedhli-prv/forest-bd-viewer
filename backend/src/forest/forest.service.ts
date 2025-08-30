@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -10,6 +11,7 @@ import { ForestData } from '../entities/forest-data.entity';
 import { ForestFilterInput } from '../common/dto/forest.dto';
 import { PolygonStats } from '../common/dto/forest.dto';
 import { BdForet } from '../entities/forest-data.entity';
+import { Cadastre } from '../entities/cadastre.entity';
 
 @Injectable()
 export class ForestService {
@@ -410,5 +412,9 @@ export class ForestService {
       essence: data.treeSpecies, // Map treeSpecies to essence
       surface: data.surfaceArea, // Map surfaceArea to surface
     })) as BdForet[];
+  }
+
+  async findAllCadastre(): Promise<Cadastre[]> {
+    return [];
   }
 }

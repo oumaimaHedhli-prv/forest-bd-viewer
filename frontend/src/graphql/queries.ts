@@ -24,8 +24,9 @@ export const GET_TREE_SPECIES = gql`
     treeSpecies
   }
 `;
+
 export const GET_LIEUX_DITS = gql`
-  query GetTreeSpecies {
+  query GetLieuxDits {
     lieuxDits
   }
 `;
@@ -95,3 +96,9 @@ export const GET_CURRENT_USER = gql`
     }
   }
 `;
+
+// Ajout de gestion des erreurs pour les requêtes
+export const handleGraphQLError = (error: any) => {
+  console.error('GraphQL Error:', error);
+  alert('Une erreur est survenue lors de la récupération des données.');
+};
