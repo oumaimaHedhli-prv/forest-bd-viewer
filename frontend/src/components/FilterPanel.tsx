@@ -5,21 +5,13 @@ import { GET_DEPARTMENTS, GET_COMMUNES, GET_TREE_SPECIES, GET_LIEUX_DITS } from 
 
 
 
-interface Department {
-  name: string;
-}
 
-interface Commune {
-  name: string;
-}
 
-interface TreeSpecies {
-  name: string;
-}
 
-interface LieuxDit {
-  name: string;
-}
+
+
+
+
 
 interface FilterPanelProps {
   regions: string[];
@@ -42,22 +34,22 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
   const [selectedLieuxDit, setSelectedLieuxDit] = useState<string>('');
 
   // Requêtes pour la navigation hiérarchique
-  const { data: departmentsData }: { data?: { departments: Department[] } } = useQuery(GET_DEPARTMENTS, {
+  const { data: departmentsData }: { data?: { departments: [] } } = useQuery(GET_DEPARTMENTS, {
     variables: { region: selectedRegion },
     skip: !selectedRegion
   });
 
-  const { data: communesData }: { data?: { communes: Commune[] } } = useQuery(GET_COMMUNES, {
+  const { data: communesData }: { data?: { communes: [] } } = useQuery(GET_COMMUNES, {
     variables: { department: selectedDepartment },
     skip: !selectedDepartment
   });
 
-  const { data: lieuxDitsData }: { data?: { lieuxDits: LieuxDit[] } } = useQuery(GET_LIEUX_DITS, {
+  const { data: lieuxDitsData }: { data?: { lieuxDits: [] } } = useQuery(GET_LIEUX_DITS, {
     variables: { commune: selectedCommune },
     skip: !selectedCommune
   });
 
-  const { data: treeSpeciesData }: { data?: { treeSpecies: TreeSpecies[] } } = useQuery(GET_TREE_SPECIES);
+  const { data: treeSpeciesData }: { data?: { treeSpecies: [] } } = useQuery(GET_TREE_SPECIES);
 
   const departments = departmentsData?.departments || [];
   const communes = communesData?.communes || [];
@@ -193,9 +185,9 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">Tous les départements</option>
-              {departments.map((department: Department, i: number) => (
-                <option key={`${department.name ?? 'department'}-${i}`} value={department.name}>
-                  {department.name}
+              {departments.map((department: [], i: number) => (
+                <option key={`${department?? 'department'}-${i}`} value={department}>
+                  {department}
                 </option>
               ))}
             </select>
@@ -214,9 +206,9 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">Toutes les communes</option>
-              {communes.map((commune: Commune, i: number) => (
-                <option key={`${commune.name ?? 'commune'}-${i}`} value={commune.name}>
-                  {commune.name}
+              {communes.map((commune: [], i: number) => (
+                <option key={`${commune?? 'commune'}-${i}`} value={commune}>
+                  {commune}
                 </option>
               ))}
             </select>
@@ -235,9 +227,9 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">Tous les lieux-dits</option>
-              {lieuxDits.map((lieuxDit: LieuxDit, i: number) => (
-                <option key={`${lieuxDit.name ?? 'lieuxDit'}-${i}`} value={lieuxDit.name}>
-                  {lieuxDit.name}
+              {lieuxDits.map((lieuxDit: [], i: number) => (
+                <option key={`${lieuxDit ?? 'lieuxDit'}-${i}`} value={lieuxDit}>
+                  {lieuxDit}
                 </option>
               ))}
             </select>
@@ -255,9 +247,9 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
           >
             <option value="">Toutes les espèces</option>
-            {treeSpecies.map((species: TreeSpecies, i: number) => (
-              <option key={`${species.name ?? 'species'}-${i}`} value={species.name}>
-                {species.name}
+            {treeSpecies.map((species: [], i: number) => (
+              <option key={`${species ?? 'species'}-${i}`} value={species}>
+                {species}
               </option>
             ))}
           </select>

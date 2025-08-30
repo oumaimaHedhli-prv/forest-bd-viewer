@@ -181,6 +181,7 @@ export class ForestService {
       .createQueryBuilder('forest')
       .select('DISTINCT forest.lieuxdit', 'lieuxdit')
       .where('forest.commune = :commune', { commune })
+      .andWhere("forest.lieuxdit IS NOT NULL AND forest.lieuxdit != ''")
       .getRawMany();
     return lieuxDits?.map((l) => l.lieuxdit);
   }

@@ -6,6 +6,8 @@ import {
   Args,
   ObjectType,
   Field,
+  ResolveField,
+  Parent,
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -51,6 +53,10 @@ export class UsersResolver {
     @Args('mapFilters', { type: () => GraphQLJSON, nullable: true })
     mapFilters: Record<string, any> | null,
   ): Promise<boolean> {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
     await this.usersService.updateMapState(
       user.id,
       mapPosition,
@@ -64,6 +70,11 @@ export class UsersResolver {
   @Query(() => User, { nullable: true })
   async getMapState(@CurrentUser() user: User): Promise<User | null> {
     return this.usersService.findById(user.id);
+  }
+
+  @ResolveField(() => GraphQLJSON, { nullable: true })
+  mapPosition(@Parent() user: User): { lat: number; lng: number } | null {
+    return user.mapPosition;
   }
 
   @Mutation(() => User)

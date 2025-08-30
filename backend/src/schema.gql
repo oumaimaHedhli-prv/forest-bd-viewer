@@ -36,7 +36,7 @@ type ForestData {
   description: String
   geometry: JSON
   id: ID!
-  lieuxdit: String!
+  lieuxdit: String
   region: String!
   surfaceArea: Float
   treeSpecies: String
@@ -141,5 +141,6 @@ type User {
   lastMapLng: Float
   lastMapZoom: Float
   lastName: String!
+  mapPosition: JSON
   updatedAt: DateTime!
 }

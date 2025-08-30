@@ -23,9 +23,9 @@ export class ForestData {
   @Column()
   commune: string;
 
-  @Field()
-  @Column()
-  lieuxdit: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  lieuxdit?: string;
 
   // Make treeSpecies nullable to avoid schema sync errors when existing rows have null values
   @Field({ nullable: true })
