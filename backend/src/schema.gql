@@ -1,0 +1,134 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthPayload {
+  access_token: String!
+  user: User!
+}
+
+input CreateUserInput {
+  email: String
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type ForestData {
+  centroid: JSON
+  commune: String!
+  department: String!
+  description: String
+  geometry: JSON
+  id: ID!
+  lieuxdit: String!
+  region: String!
+  surfaceArea: Float
+  treeSpecies: String
+}
+
+input ForestFilterInput {
+  commune: String
+  department: String
+  east: Float
+  maxSurfaceArea: Float
+  minSurfaceArea: Float
+  north: Float
+  region: String
+  south: Float
+  treeSpecies: String
+  west: Float
+}
+
+type ForestStatistics {
+  averageArea: Float!
+  count: Float!
+  totalArea: Float!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+input LoginUserInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User!
+  deleteUser(id: String!): Boolean!
+  login(input: LoginUserInput!): AuthPayload!
+  register(input: RegisterUserInput!): AuthPayload!
+  saveMapState(mapFilters: JSON, mapPosition: JSON, mapZoom: Float): Boolean!
+  submitPolygon(geojson: String!): PolygonStats!
+  updateUser(id: String!, input: UpdateUserInput!): User!
+}
+
+type ParcelInfo {
+  id: String!
+  lieuxdit: String
+}
+
+type PolygonStats {
+  parcelCount: Float!
+  parcels: [ParcelInfo!]!
+  speciesBreakdown: [SpeciesArea!]!
+  totalArea: Float!
+  treeSpecies: [String!]!
+}
+
+type Query {
+  communes(department: String): [String!]!
+  departments(region: String): [String!]!
+  forestStatistics(filters: ForestFilterInput): ForestStatistics!
+  forests(filters: ForestFilterInput): [ForestData!]!
+  forestsByBBox(bbox: [Float!]!): [ForestData!]!
+  forestsByPolygon(geojson: String!): [ForestData!]!
+  getAllUsers: [User!]!
+  getCommunes(department: String!): [String!]!
+  getDepartments(region: String!): [String!]!
+  getLieuxDits(commune: String!): [String!]!
+  getMapState: User
+  getRegions: [String!]!
+  me: User
+  regions: [String!]!
+  treeSpecies: [String!]!
+}
+
+input RegisterUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+type SpeciesArea {
+  areaHa: Float!
+  species: String!
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  password: String
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  lastMapFilters: JSON
+  lastMapLat: Float
+  lastMapLng: Float
+  lastMapZoom: Float
+  lastName: String!
+  updatedAt: DateTime!
+}
