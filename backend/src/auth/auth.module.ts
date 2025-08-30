@@ -17,7 +17,11 @@ import { JwtStrategy } from './jwt.strategy';
     }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '24h' },
+      signOptions: {
+        expiresIn: '24h',
+        algorithm: 'HS256',
+        issuer: 'forest-bd-viewer',
+      },
     }),
   ],
   providers: [AuthService, AuthResolver, JwtStrategy],
