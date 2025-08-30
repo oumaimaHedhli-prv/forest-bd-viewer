@@ -105,3 +105,48 @@ npm run dev:backend
    - Focused on clean code and architecture over completeness due to limited time.
 
 ---
+
+## État d'avancement des modules
+
+### Backend
+- **Authentification** : 100%
+  - Inscription, connexion, et déconnexion implémentées.
+  - JWT pour l'authentification.
+- **Données forestières** : 90%
+  - Requêtes GraphQL pour récupérer les données géospatiales.
+  - Analyse des polygones presque complète (tests supplémentaires nécessaires).
+- **Gestion des utilisateurs** : 100%
+  - CRUD complet pour les utilisateurs.
+
+### Frontend
+- **Interface utilisateur** : 80%
+  - Carte interactive avec Mapbox GL JS/maplibre.
+  - Navigation hiérarchique (région → département → commune → lieux-dit).
+  - Filtres fonctionnels.
+- **Authentification** : 100%
+  - Modale pour la connexion et l'inscription.
+  - Gestion des erreurs d'authentification.
+- **Dessin de polygones** : 80%
+  - Outil de dessin fonctionnel.
+  - Analyse des polygones en cours de finalisation.
+
+### Base de données
+- **Schéma** : 100%
+  - Tables pour les utilisateurs, les données forestières, et le cadastre.
+- **Scripts** : 100%
+  - Scripts pour l'importation des données et la configuration initiale.
+
+### Tests
+- **Backend** : 80%
+  - Tests end-to-end pour les fonctionnalités principales.
+  - Tests supplémentaires nécessaires pour les cas limites.
+- **Frontend** : 70%
+  - Tests manuels effectués.
+  - Automatisation des tests en cours.
+
+### Déploiement
+- **Docker** : 100%
+  - Configuration Docker pour le backend, le frontend, et la base de données.
+- **CI/CD** : 70%
+  - Pipeline de base configuré avec GitHub Actions.
+  - Tests automatiques à intégrer.
