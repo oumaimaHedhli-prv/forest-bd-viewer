@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
+// This resolver handles GraphQL queries and mutations related to forest data.
+// It connects the frontend's GraphQL requests to the corresponding service methods.
+
 import {
   Resolver,
   Query,
@@ -90,6 +93,8 @@ export class ForestResolver {
     return this.forestService.getLieuxDits(commune);
   }
 
+  // The `submitPolygon` mutation processes a user-drawn polygon.
+  // It calculates statistics such as the total area, intersecting parcels, and tree species breakdown.
   @Mutation(() => PolygonStats)
   async submitPolygon(
     @Args('geojson', { type: () => String }) geojson: string,
@@ -104,6 +109,8 @@ export class ForestResolver {
     return this.forestService.analyzePolygon(parsed);
   }
 
+  // The `forestsByBBox` query retrieves forest data within a specified bounding box.
+  // It is used to display relevant forest data on the map based on the visible area.
   @Query(() => [ForestData])
   async forestsByBBox(
     @Args('bbox', { type: () => [Float] }) bbox: number[], // expect [west, south, east, north]

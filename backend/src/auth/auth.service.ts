@@ -5,6 +5,9 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcryptjs';
 
+// This service handles authentication-related operations.
+// It includes methods for user registration, login, and token generation.
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -13,6 +16,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // The `register` method creates a new user in the database.
+  // It hashes the user's password before saving it for security purposes.
   async register(
     email: string,
     password: string,
@@ -50,6 +55,8 @@ export class AuthService {
     };
   }
 
+  // The `login` method authenticates a user by verifying their email and password.
+  // If successful, it generates a JWT token for the user.
   async login(email: string, password: string) {
     // Find user
     const user = await this.userRepository.findOne({ where: { email } });
@@ -73,6 +80,8 @@ export class AuthService {
     };
   }
 
+  // The `validateUser` method is used internally to verify user credentials.
+  // It is called by the `JwtStrategy` during the authentication process.
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
     if (user && (await bcrypt.compare(password, user.password))) {

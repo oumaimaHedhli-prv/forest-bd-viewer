@@ -13,6 +13,9 @@ import { PolygonStats } from '../common/dto/forest.dto';
 import { BdForet } from '../entities/forest-data.entity';
 import { Cadastre } from '../entities/cadastre.entity';
 
+// This service handles all operations related to forest data.
+// It includes methods for querying geospatial data and performing spatial analysis.
+
 @Injectable()
 export class ForestService {
   constructor(
@@ -21,6 +24,8 @@ export class ForestService {
     private dataSource: DataSource,
   ) {}
 
+  // The `findAll` method retrieves forest data based on filters such as region, department, and commune.
+  // It uses TypeORM's query builder to dynamically construct SQL queries.
   async findAll(filters?: ForestFilterInput): Promise<ForestData[]> {
     const queryBuilder = this.forestRepository.createQueryBuilder('forest');
 
@@ -176,6 +181,8 @@ export class ForestService {
     return communes.map((c) => c.commune);
   }
 
+  // The `getLieuxDits` method retrieves unique lieux-dits (local place names) for a given commune.
+  // It ensures that null or empty values are excluded from the results.
   async getLieuxDits(commune: string): Promise<string[]> {
     const lieuxDits = await this.forestRepository
       .createQueryBuilder('forest')
@@ -186,6 +193,11 @@ export class ForestService {
     return lieuxDits?.map((l) => l.lieuxdit);
   }
 
+  // The `analyzePolygon` method processes a GeoJSON polygon to calculate statistics such as:
+  // - Total area in hectares
+  // - Intersecting parcels and their areas
+  // - Breakdown of tree species within the polygon
+  // This method uses PostGIS functions for spatial calculations.
   async analyzePolygon(coordinatesOrGeojson: any): Promise<PolygonStats> {
     // Accept either a GeoJSON geometry/feature or an array of coordinates (legacy)
     let geomObj: any = null;

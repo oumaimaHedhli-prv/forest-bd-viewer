@@ -103,6 +103,8 @@ interface PolygonStats {
   parcels: ParcelInfo[];
 }
 
+// This component renders the interactive map using Mapbox GL JS/MAPlibre.
+// It includes features like hierarchical navigation, layer management, and polygon drawing.
 export default function ForestMap({ 
   selectedData, 
   onDataSelect,
@@ -287,6 +289,8 @@ export default function ForestMap({
   }, []);
 
   // Fonction pour appliquer les filtres (peut maintenant utiliser updateMapMarkers)
+  // The `applyFilters` function filters the displayed forest data based on user-selected criteria.
+  // It updates the map markers to reflect the filtered data.
   const applyFilters = useCallback((currentFilters: MapFilters) => {
     const filteredData = forestData.filter(forest => {
       if (currentFilters.year && forest.year !== currentFilters.year) return false;
@@ -334,6 +338,8 @@ export default function ForestMap({
   }, []);
 
   // Fonction pour gérer la navigation hiérarchique
+  // The `handleHierarchicalNavigation` function manages navigation between region, department, commune, and lieux-dit levels.
+  // It adjusts the map's zoom level and updates the navigation state accordingly.
   const handleHierarchicalNavigation = useCallback((level: keyof HierarchicalNavigation, value: string) => {
     setNavigation(prev => {
       const newNav = { ...prev, [level]: value };
@@ -443,6 +449,8 @@ export default function ForestMap({
   );
 
   // Ajout de la gestion des couches IGN
+  // The `setupIGNLayers` function configures the map layers for BD Forêt and Cadastre.
+  // It ensures that layers are displayed or hidden based on the zoom level.
   const setupIGNLayers = useCallback(() => {
     if (!mapInstance.current) return;
 

@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { CreateUserInput, UpdateUserInput } from '../common/dto/user.dto';
 
+// This service handles operations related to user management.
+// It includes methods for CRUD operations and managing user-specific data such as map state.
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -11,6 +14,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  // The `findById` method retrieves a user by their unique ID.
+  // It is used to fetch user details, including their saved map state.
   async findById(userId: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id: userId } });
   }
@@ -46,6 +51,8 @@ export class UsersService {
     );
   }
 
+  // The `updateMapState` method updates the user's last map view state.
+  // This includes the map's position, zoom level, and any applied filters.
   async updateMapState(
     userId: string,
     mapPosition: { lat: number; lng: number } | null,
