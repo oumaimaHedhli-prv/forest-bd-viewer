@@ -35,7 +35,7 @@ docker-compose up
 
 L'application sera disponible sur :
 - Frontend : http://localhost:3000
-- Backend : http://localhost:3001
+- Backend : http://localhost:4000
 - Base de données : localhost:5432
 
 ### Sans Docker (développement)
