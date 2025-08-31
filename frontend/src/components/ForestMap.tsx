@@ -282,9 +282,43 @@ export default function ForestMap({
     const bounds = mapInstance.current.getBounds();
     fetchCadastralData()
     .then(data => {
-      if (mapInstance.current?.getSource('cadastral-source')) {
-        (mapInstance.current.getSource('cadastral-source') as maplibregl.GeoJSONSource)
-          .setData(data);
+      try {
+        // Normalize the cadastral data into a GeoJSON FeatureCollection
+        const features = (data || []).map((item: any) => {
+          // item.geometry may be a GeoJSON string or an object
+          let geometry = null;
+          try {
+            geometry = typeof item.geometry === 'string' ? JSON.parse(item.geometry) : item.geometry;
+          } catch (e) {
+            geometry = item.geometry ?? null;
+          }
+
+          return {
+            type: 'Feature',
+            geometry: geometry,
+            properties: {
+              id: item.id,
+              region: item.region,
+              department: item.department,
+              commune: item.commune,
+              lieuxdit: item.lieuxdit,
+              description: item.description,
+            },
+          };
+        });
+
+        const geojson = {
+          type: 'FeatureCollection',
+          features,
+        };
+
+        if (mapInstance.current?.getSource('cadastral-source')) {
+          (mapInstance.current.getSource('cadastral-source') as maplibregl.GeoJSONSource)
+            .setData(geojson as any);
+        }
+      } catch (err) {
+        console.error('Error normalizing cadastral data to GeoJSON:', err);
+        setError('Erreur lors du chargement des données cadastrales');
       }
     }).catch(error => {
       console.error('Error loading cadastral data:', error);
