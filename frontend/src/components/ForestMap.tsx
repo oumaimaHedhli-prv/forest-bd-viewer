@@ -465,12 +465,8 @@ export default function ForestMap({
         const bounds = mapInstance.current?.getBounds();
         if (bounds) {
           try {
-            const cadastralData = await fetchCadastralData();
-
-            if (mapInstance.current?.getSource('cadastral-source')) {
-              (mapInstance.current.getSource('cadastral-source') as maplibregl.GeoJSONSource)
-                .setData(cadastralData);
-            }
+            // Use centralized loader which normalizes to GeoJSON before calling setData
+            loadCadastralData();
           } catch (error) {
             console.error('Error loading cadastral data:', error);
           }
@@ -481,7 +477,7 @@ export default function ForestMap({
     return () => {
       mapInstance.current?.off('zoom', handleZoomChange);
     };
-  }, [handleZoomChange, zoomLevel]);
+  }, [handleZoomChange, zoomLevel, loadCadastralData]);
 
   // Composant de légende
   const Legend = () => (
