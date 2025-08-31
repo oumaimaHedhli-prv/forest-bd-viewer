@@ -1,3 +1,4 @@
+
 import { gql } from '@apollo/client';
 
 // Requêtes pour la navigation hiérarchique BD Forêt®

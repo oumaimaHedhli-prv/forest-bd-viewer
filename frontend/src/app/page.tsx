@@ -29,6 +29,7 @@ interface ForestFilters {
   department?: string;
   commune?: string;
   treeSpecies?: string;
+  lieuxdit?: string;
 }
 
 export default function Home() {
@@ -93,7 +94,7 @@ export default function Home() {
     skip: !isAuthenticated
   });
 
-  const { data: statsData, loading: statsLoading } = useQuery<{ forestStatistics: { count: number; totalArea: number; averageArea: number } }>(GET_FOREST_STATISTICS, {
+  const { data: statsData,  } = useQuery<{ forestStatistics: { count: number; totalArea: number; averageArea: number } }>(GET_FOREST_STATISTICS, {
     variables: { filters },
     skip: !isAuthenticated
   });

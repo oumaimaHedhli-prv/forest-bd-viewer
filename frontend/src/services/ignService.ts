@@ -1,14 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import client from '@/lib/apollo-client';
-import { IGN_CONFIG } from '../config/ignConfig';
 import { gql } from '@apollo/client';
 
-interface BoundingBox {
-  north: number;
-  south: number;
-  east: number;
-  west: number;
-}
+// Define TypeScript types for the GraphQL responses
+type Forest = {
+  id: string;
+  region?: string;
+  department?: string;
+  commune?: string;
+  lieuxdit?: string;
+  treeSpecies?: string;
+  surfaceArea?: number;
+  geometry?: any;
+  description?: string;
+};
+
+type Cadastral = {
+  id: string;
+  region?: string;
+  department?: string;
+  commune?: string;
+  lieuxdit?: string;
+  geometry?: any;
+  description?: string;
+};
+
+type GetForestDataResult = { forests: Forest[] };
+type GetCadastralDataResult = { cadastralData: Cadastral[] };
+type ForestFilters = Record<string, unknown>;
 
 // Requête GraphQL pour récupérer les données de la table forest_data
 const GET_FOREST_DATA = gql`
@@ -42,14 +60,14 @@ const GET_CADASTRE_DATA = gql`
   }
 `;
 
-export async function fetchForestData(filters: any) {
+export async function fetchForestData(filters: ForestFilters) {
   try {
-    const { data } = await client.query({
+    const { data } = await client.query<GetForestDataResult, { filters?: ForestFilters }>({
       query: GET_FOREST_DATA,
       variables: { filters },
       fetchPolicy: 'network-only',
     });
-    return data?.forests;
+    return data?.forests ?? [];
   } catch (error) {
     console.error('Error fetching forest data:', error);
     throw error;
@@ -58,11 +76,11 @@ export async function fetchForestData(filters: any) {
 
 export async function fetchCadastralData() {
   try {
-    const { data } = await client.query({
+    const { data } = await client.query<GetCadastralDataResult>({
       query: GET_CADASTRE_DATA,
       fetchPolicy: 'network-only',
     });
-    return data?.cadastralData || [];
+    return data?.cadastralData ?? [];
   } catch (error) {
     console.error('Error fetching cadastral data:', error);
     throw error;
@@ -76,7 +94,7 @@ export async function fetchLocalBDForetData() {
     if (!response.ok) {
       throw new Error(`Failed to fetch local BD Forêt data: ${response.statusText}`);
     }
-    return response.json();
+    return (await response.json()) as Forest[];
   } catch (error) {
     console.error('Error fetching local BD Forêt data:', error);
     throw error;
@@ -90,7 +108,7 @@ export async function fetchLocalCadastralData() {
     if (!response.ok) {
       throw new Error(`Failed to fetch local cadastral data: ${response.statusText}`);
     }
-    return response.json();
+    return (await response.json()) as Cadastral[];
   } catch (error) {
     console.error('Error fetching local cadastral data:', error);
     throw error;

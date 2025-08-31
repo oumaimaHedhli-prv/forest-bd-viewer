@@ -54,6 +54,13 @@ export class ForestService {
         });
       }
 
+      // Support filtering by lieux-dit (place name)
+      if (filters.lieuxdit) {
+        queryBuilder.andWhere('forest.lieuxdit ILIKE :lieuxdit', {
+          lieuxdit: `%${filters.lieuxdit}%`,
+        });
+      }
+
       if (filters.minSurfaceArea) {
         queryBuilder.andWhere('forest.surfaceArea >= :minSurfaceArea', {
           minSurfaceArea: filters.minSurfaceArea,
@@ -139,7 +146,55 @@ export class ForestService {
           region: `%${filters.region}%`,
         });
       }
-      // ... apply other filters similarly
+
+      if (filters.department) {
+        queryBuilder.andWhere('forest.department ILIKE :department', {
+          department: `%${filters.department}%`,
+        });
+      }
+
+      if (filters.commune) {
+        queryBuilder.andWhere('forest.commune ILIKE :commune', {
+          commune: `%${filters.commune}%`,
+        });
+      }
+
+      if (filters.treeSpecies) {
+        queryBuilder.andWhere('forest.treeSpecies ILIKE :treeSpecies', {
+          treeSpecies: `%${filters.treeSpecies}%`,
+        });
+      }
+
+      // Apply lieuxdit filter for statistics as well
+      if (filters.lieuxdit) {
+        queryBuilder.andWhere('forest.lieuxdit ILIKE :lieuxdit', {
+          lieuxdit: `%${filters.lieuxdit}%`,
+        });
+      }
+
+      if (filters.minSurfaceArea) {
+        queryBuilder.andWhere('forest.surfaceArea >= :minSurfaceArea', {
+          minSurfaceArea: filters.minSurfaceArea,
+        });
+      }
+
+      if (filters.maxSurfaceArea) {
+        queryBuilder.andWhere('forest.surfaceArea <= :maxSurfaceArea', {
+          maxSurfaceArea: filters.maxSurfaceArea,
+        });
+      }
+
+      if (filters.north && filters.south && filters.east && filters.west) {
+        queryBuilder.andWhere(
+          'ST_Intersects(forest.geometry, ST_MakeEnvelope(:west, :south, :east, :north, 4326))',
+          {
+            west: filters.west,
+            south: filters.south,
+            east: filters.east,
+            north: filters.north,
+          },
+        );
+      }
     }
 
     const result = await queryBuilder

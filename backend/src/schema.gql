@@ -46,6 +46,7 @@ input ForestFilterInput {
   commune: String
   department: String
   east: Float
+  lieuxdit: String
   maxSurfaceArea: Float
   minSurfaceArea: Float
   north: Float

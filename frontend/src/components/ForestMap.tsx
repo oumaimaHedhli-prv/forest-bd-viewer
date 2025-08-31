@@ -31,6 +31,7 @@ interface ForestData {
   region: string;
   department: string;
   commune: string;
+  lieuxdit?: string;
   treeSpecies: string;
   area: number;
   year: number;
@@ -43,9 +44,11 @@ interface ForestData {
 interface MapFilters {
   year?: number;
   species?: string[];
+  treeSpecies?: string;
   minArea?: number;
   maxArea?: number;
   region?: string;
+  lieuxdit?: string;
 }
 
 interface ForestMapProps {
@@ -63,7 +66,7 @@ interface HierarchicalNavigation {
   region?: string;
   department?: string;
   commune?: string;
-  lieuDit?: string;
+  lieuxdit?: string;
 }
 
 import { IGN_CONFIG } from '../config/ignConfig';
@@ -106,6 +109,7 @@ interface PolygonStats {
 // This component renders the interactive map using Mapbox GL JS/MAPlibre.
 // It includes features like hierarchical navigation, layer management, and polygon drawing.
 export default function ForestMap({ 
+  forestData: propForestData = [],
   selectedData, 
   onDataSelect,
   filters = {},
@@ -117,7 +121,7 @@ export default function ForestMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
   const [hoveredData, setHoveredData] = useState<ForestData | null>(null);
-  const [forestData, setForestData] = useState<ForestData[]>([]); // Add state for forestData
+  const [forestData, setForestData] = useState<ForestData[]>(propForestData); // local state synced with prop
   const [searchQuery, setSearchQuery] = useState("");
   const [clusters, setClusters] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -296,14 +300,42 @@ export default function ForestMap({
       if (currentFilters.year && forest.year !== currentFilters.year) return false;
       if (currentFilters.minArea && forest.area < currentFilters.minArea) return false;
       if (currentFilters.maxArea && forest.area > currentFilters.maxArea) return false;
-      if (currentFilters.species?.length && !currentFilters.species.includes(forest.treeSpecies)) return false;
+      // species can be an array (client multi-select) or a single treeSpecies string from the parent
+      if (currentFilters.species && currentFilters.species.length) {
+        if (!currentFilters.species.includes(forest.treeSpecies)) return false;
+      } else if (currentFilters.treeSpecies) {
+        if (forest.treeSpecies !== currentFilters.treeSpecies) return false;
+      }
       if (currentFilters.region && forest.region !== currentFilters.region) return false;
+      if (currentFilters.lieuxdit && forest.lieuxdit !== currentFilters.lieuxdit) return false;
       return true;
     });
 
     updateMapMarkers(filteredData);
+    // Notify parent with a normalized filter shape (optional)
     onFilterChange?.(currentFilters);
   }, [forestData, onFilterChange, updateMapMarkers]);
+
+  // Reapply filters when parent filters prop changes
+  useEffect(() => {
+    try {
+      // `filters` prop may have different shape; cast to MapFilters and call applyFilters
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const incoming: any = (filters as any) || {};
+      const normalized: MapFilters = {
+        year: incoming.year,
+        minArea: incoming.minArea,
+        maxArea: incoming.maxArea,
+        species: incoming.species || (incoming.treeSpecies ? [incoming.treeSpecies] : undefined),
+        treeSpecies: incoming.treeSpecies,
+        region: incoming.region,
+        lieuxdit: incoming.lieuxdit || incoming.lieuDit || incoming.lieuxDit
+      };
+      applyFilters(normalized);
+    } catch (e) {
+      console.warn('Failed to apply incoming filters', e);
+    }
+  }, [filters, applyFilters]);
 
   // Fonction de recherche
   const handleSearch = useCallback((query: string) => {
@@ -344,20 +376,21 @@ export default function ForestMap({
     setNavigation(prev => {
       const newNav = { ...prev, [level]: value };
       // Réinitialiser les niveaux inférieurs
-      const levels: (keyof HierarchicalNavigation)[] = ['region', 'department', 'commune', 'lieuDit'];
+      const levels: (keyof HierarchicalNavigation)[] = ['region', 'department', 'commune', 'lieuxdit'];
       const currentIndex = levels.indexOf(level);
       levels.slice(currentIndex + 1).forEach(l => delete newNav[l]);
       return newNav;
     });
 
     // Ajuster le zoom selon le niveau
-    const zoomLevels = {
+    const zoomLevels: Record<string, number> = {
       region: 8,
       department: 10,
       commune: 12,
-      lieuDit: 14
+      lieuxdit: 14
     };
-    mapInstance.current?.setZoom(zoomLevels[level]);
+    // use string index because level may be a keyof
+    mapInstance.current?.setZoom(zoomLevels[level as string]);
   }, []);
 
   // Gérer les couches selon le zoom
@@ -572,6 +605,17 @@ export default function ForestMap({
     updateMapMarkers(mapped);
   }, [bboxData, updateMapMarkers]);
 
+  // Sync local state with the data passed by the parent to avoid re-fetching and remounting the map
+  useEffect(() => {
+    setForestData(propForestData || []);
+  }, [propForestData]);
+
+  // Update markers whenever the forest data changes (from parent or local operations)
+  useEffect(() => {
+    updateMapMarkers(forestData);
+  }, [forestData, updateMapMarkers]);
+
+  // Initialize the map only once on mount. Do not recreate when props change.
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
@@ -603,7 +647,26 @@ export default function ForestMap({
       mapInstance.current?.remove();
       mapInstance.current = null;
     };
-  }, [mapPosition, mapZoom, setupIGNLayers]);
+  }, [setupIGNLayers]);
+
+  // When parent updates desired map center/zoom, update the existing map instead of re-creating it
+  useEffect(() => {
+    if (!mapInstance.current) return;
+    if (mapPosition) {
+      try {
+        mapInstance.current.setCenter([mapPosition.lng, mapPosition.lat]);
+      } catch (e) {
+        console.warn('Failed to set center on map', e);
+      }
+    }
+    if (typeof mapZoom === 'number') {
+      try {
+        mapInstance.current.setZoom(mapZoom);
+      } catch (e) {
+        console.warn('Failed to set zoom on map', e);
+      }
+    }
+  }, [mapPosition, mapZoom]);
 
   // Regrouper les données par région pour l'affichage
   const dataByRegion = forestData.reduce((acc, data) => {
@@ -643,6 +706,7 @@ export default function ForestMap({
       region: r.region,
       department: r.department,
       commune: r.commune,
+      lieuxdit: r.lieuxdit ?? r.lieuDit ?? null,
       treeSpecies: r.treeSpecies || r.tree_species,
       area: r.surfaceArea || r.surface_area || 0,
       year: r.year || new Date().getFullYear(),
@@ -655,23 +719,6 @@ export default function ForestMap({
       })(),
     }));
   };
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const forestData = await fetchForestData(filters);
-        setForestData(forestData);
-
-        const cadastralData = await fetchCadastralData();
-        setCadastralData(cadastralData);
-      } catch (error) {
-        console.error('Error loading data:', error);
-        setError('Erreur lors du chargement des données.');
-      }
-    }
-
-    loadData();
-  }, [filters]);
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">

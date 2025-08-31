@@ -1,18 +1,17 @@
 #!/bin/bash
 set -e
+# Set the PostgreSQL password
+export PGPASSWORD="datafabric-local"
 
 # Variables
-DB_NAME="foret_db"
+DB_NAME="forest_db"
 DB_USER="postgres"
 DB_PASS="datafabric-local"
 IFILE="database/data/bdforet_v2_75.gpkg"
 
-# Supporte aussi les fichiers SHP décompressés (ex: dossier database/data/DEPT/ contenant .shp, .dbf, .shx...)
-# Si un .gpkg est présent, on l'importe, sinon on cherche un .shp
-
-# Recherche automatique d'un fichier .gpkg ou d'un dossier contenant un .shp dans database/data/
-GPKG_FILE=$(find database/data/ -maxdepth 2 -type f -iname '*.gpkg' | head -n 1)
-SHP_FILE=$(find database/data/ -maxdepth 3 -type f -iname '*.shp' | head -n 1)
+# Recherche automatique d'un fichier .gpkg ou d'un dossier contenant un .shp
+GPKG_FILE=$(find "database/data/" -maxdepth 2 -type f -iname '*.gpkg' | head -n 1)
+SHP_FILE=$(find "database/data/BDFORET_2-0__SHP_LAMB93_D001_2014-04-01 (1)/BDFORET_2-0__SHP_LAMB93_D001_2014-04-01/BDFORET/" -maxdepth 3 -type f -iname '*.shp' | head -n 1)
 
 if [ -n "$GPKG_FILE" ]; then
   FILE="$GPKG_FILE"
@@ -25,25 +24,36 @@ else
   exit 1
 fi
 
-# 1. Télécharger fichier
+# 1. Vérifier que le fichier existe
 if [ ! -f "$FILE" ]; then
   echo "❌ Fichier $FILE introuvable. Place le fichier téléchargé dans ce dossier."
   exit 1
 fi
 
-# 2. Créer base Postgres + PostGIS
-echo "🗄️ Création base PostGIS..."
-psql -U $DB_USER -c "DROP DATABASE IF EXISTS $DB_NAME;"
-psql -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
-psql -U $DB_USER -d $DB_NAME -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+# 2. Vérification et création de la table forest_data si elle n'existe pas
+echo "🛠️ Vérification de la table forest_data..."
+psql -h localhost -U $DB_USER -d $DB_NAME -c "
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'forest_data') THEN
+        CREATE TABLE forest_data (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255),
+            geometry GEOMETRY,
+            species VARCHAR(255),
+            area_ha FLOAT
+        );
+    END IF;
+END
+\$\$;"
 
 # 3. Importer BD Forêt
 if [ "$IMPORT_TYPE" = "gpkg" ]; then
   echo "📂 Import BD Forêt (GeoPackage): $FILE"
-  ogr2ogr -f "PostgreSQL" PG:"dbname=$DB_NAME user=$DB_USER password=$DB_PASS" "$FILE" -nln bdforet -overwrite
+  ogr2ogr -f "PostgreSQL" PG:"host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS" "$FILE" -nln bdforet -overwrite
 else
   echo "📂 Import BD Forêt (SHP): $FILE"
-  ogr2ogr -f "PostgreSQL" PG:"dbname=$DB_NAME user=$DB_USER password=$DB_PASS" "$FILE" -nln bdforet -overwrite
+  ogr2ogr -f "PostgreSQL" PG:"host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS" "$FILE" -nln bdforet -overwrite
 fi
 
 echo "✅ Données BD Forêt importées dans PostGIS"

@@ -3,16 +3,6 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { GET_DEPARTMENTS, GET_COMMUNES, GET_TREE_SPECIES, GET_LIEUX_DITS } from '@/graphql/queries';
 
-
-
-
-
-
-
-
-
-
-
 interface FilterPanelProps {
   regions: string[];
   currentFilters: {
@@ -20,9 +10,9 @@ interface FilterPanelProps {
     department?: string;
     commune?: string;
     treeSpecies?: string;
-    lieuxDit?: string;
+    lieuxdit?: string;
   };
-  onFiltersChange: (filters: { region?: string; department?: string; commune?: string; treeSpecies?: string; lieuxDit?: string }) => void;
+  onFiltersChange: (filters: { region?: string; department?: string; commune?: string; treeSpecies?: string; lieuxdit?: string }) => void;
 }
 
 export default function FilterPanel({ regions, currentFilters, onFiltersChange }: FilterPanelProps) {
@@ -62,7 +52,7 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
     setSelectedDepartment(currentFilters.department || '');
     setSelectedCommune(currentFilters.commune || '');
     setSelectedSpecies(currentFilters.treeSpecies || '');
-    setSelectedLieuxDit(currentFilters.lieuxDit || '');
+    setSelectedLieuxDit(currentFilters.lieuxdit || '');
   }, [currentFilters]);
 
   const handleRegionChange = (region: string) => {
@@ -76,7 +66,7 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
       region: region || undefined,
       department: undefined,
       commune: undefined,
-      lieuxDit: undefined
+      lieuxdit: undefined
     };
     onFiltersChange(newFilters);
   };
@@ -90,7 +80,7 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
       ...currentFilters,
       department: department || undefined,
       commune: undefined,
-      lieuxDit: undefined
+      lieuxdit: undefined
     };
     onFiltersChange(newFilters);
   };
@@ -102,7 +92,7 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
     const newFilters = {
       ...currentFilters,
       commune: commune || undefined,
-      lieuxDit: undefined
+      lieuxdit: undefined
     };
     onFiltersChange(newFilters);
   };
@@ -112,7 +102,7 @@ export default function FilterPanel({ regions, currentFilters, onFiltersChange }
     
     const newFilters = {
       ...currentFilters,
-      lieuxDit: lieuxDit || undefined
+      lieuxdit: lieuxDit || undefined
     };
     onFiltersChange(newFilters);
   };

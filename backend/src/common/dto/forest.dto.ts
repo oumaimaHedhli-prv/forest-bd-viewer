@@ -23,6 +23,11 @@ export class ForestFilterInput {
   @IsString()
   treeSpecies?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  lieuxdit?: string;
+
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
