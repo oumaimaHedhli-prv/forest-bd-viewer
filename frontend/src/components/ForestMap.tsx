@@ -456,28 +456,28 @@ export default function ForestMap({
   useEffect(() => {
     if (!mapInstance.current) return;
 
+    const onMoveEnd = async () => {
+      const zoom = mapInstance.current?.getZoom() ?? 0;
+      if (zoom >= 12) {
+        try {
+          await loadCadastralData();
+        } catch (error) {
+          console.error('Error loading cadastral data on moveend:', error);
+        }
+      }
+    };
+
     // Ajouter l'écouteur de zoom
     mapInstance.current.on('zoom', handleZoomChange);
 
-    // Charger les données cadastrales
-    mapInstance.current.on('moveend', async () => {
-      if (zoomLevel >= 12) {
-        const bounds = mapInstance.current?.getBounds();
-        if (bounds) {
-          try {
-            // Use centralized loader which normalizes to GeoJSON before calling setData
-            loadCadastralData();
-          } catch (error) {
-            console.error('Error loading cadastral data:', error);
-          }
-        }
-      }
-    });
+    // Utiliser un callback nommé pour moveend et éviter de capturer zoomLevel
+    mapInstance.current.on('moveend', onMoveEnd);
 
     return () => {
       mapInstance.current?.off('zoom', handleZoomChange);
+      mapInstance.current?.off('moveend', onMoveEnd);
     };
-  }, [handleZoomChange, zoomLevel, loadCadastralData]);
+  }, [handleZoomChange, loadCadastralData]);
 
   // Composant de légende
   const Legend = () => (

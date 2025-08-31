@@ -6,13 +6,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: forest-bd-backend
+    env_file:
+      - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/forest_db
       - NODE_ENV=development
       - PORT=4000
       - FRONTEND_URL=http://localhost:3000
     ports:
-      - "3001:3001"
+      - "4000:4000"
     depends_on:
       - db
     networks:
@@ -27,7 +28,8 @@ services:
       dockerfile: Dockerfile
     container_name: forest-bd-frontend
     environment:
-      - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:3001/graphql
+      - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:4000/graphql
+
       # Décommente et configure si tu es derrière un proxy
       #- HTTP_PROXY=http://user:pass@proxy:port
       #- HTTPS_PROXY=http://user:pass@proxy:port
@@ -47,16 +49,43 @@ services:
     container_name: forest-bd-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: datafabric-local
       POSTGRES_DB: forest_db
     ports:
       - "5432:5432"
     volumes:
       - database_data:/var/lib/postgresql/data
-      - ./database/scripts:/docker-entrypoint-initdb.d:ro
+      - ./database/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/scripts/insert-sample-data.sql:/docker-entrypoint-initdb.d/insert-sample-data.sql:ro
+      - ./database/scripts/insert-big-sample-data.sql:/docker-entrypoint-initdb.d/insert-big-sample-data.sql:ro
+      - ./database/scripts/update_indexes.sql:/docker-entrypoint-initdb.d/update_indexes.sql:ro
     networks:
       - forest-network
     restart: unless-stopped
+
+  importer:
+    image: ghcr.io/osgeo/gdal:alpine-small-latest
+    container_name: forest-bd-importer
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=forest_db
+      - DB_USER=postgres
+      - DB_PASS=datafabric-local
+      - TIMEOUT=120
+      - RETRIES=5
+      - SLEEP=10
+    volumes:
+      - ./database/data:/data:ro
+      - ./database/scripts/import_bdforet.sh:/import_bdforet.sh:ro
+      - ./database/scripts/wait-for-postgres.sh:/wait-for-postgres.sh:ro
+      - ./database/scripts/import-runner.sh:/import-runner.sh:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: "chmod +x /wait-for-postgres.sh /import_bdforet.sh /import-runner.sh && /import-runner.sh"
+    networks:
+      - forest-network
+    restart: on-failure
 
 volumes:
   database_data:

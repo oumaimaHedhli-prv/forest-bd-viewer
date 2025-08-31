@@ -1,3 +1,5 @@
+#we dont use this file  to download the data /manuelly
+
 #!/bin/bash
 set -e
 
