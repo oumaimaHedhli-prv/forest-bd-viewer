@@ -119,7 +119,6 @@ export class ForestResolver {
       bbox as [number, number, number, number],
     );
 
-    // Service already returns ForestData-shaped objects
     return rows || [];
   }
 
