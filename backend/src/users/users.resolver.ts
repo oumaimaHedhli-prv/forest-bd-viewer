@@ -99,4 +99,11 @@ export class UsersResolver {
   async deleteUser(@Args('id') id: string): Promise<boolean> {
     return this.usersService.delete(id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => Boolean)
+  logout(@CurrentUser() user: User): boolean {
+    // Placeholder: la déconnexion se fait côté frontend en supprimant le token
+    return true;
+  }
 }

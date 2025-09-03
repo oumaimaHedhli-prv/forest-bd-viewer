@@ -52,6 +52,11 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
+const LOGOUT_MUTATION = gql`
+  mutation Logout {
+    logout
+  }
+`;
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -64,6 +69,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [loginMutation] = apolloUseMutation(LOGIN_MUTATION);
   const [registerMutation] = apolloUseMutation(REGISTER_MUTATION);
 
+  const [logoutMutation] = apolloUseMutation(LOGOUT_MUTATION);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
