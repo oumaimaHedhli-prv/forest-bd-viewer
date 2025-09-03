@@ -27,17 +27,14 @@ export class ForestData {
   @Column({ nullable: true })
   lieuxdit?: string;
 
-  // Make treeSpecies nullable to avoid schema sync errors when existing rows have null values
   @Field({ nullable: true })
   @Column({ name: 'tree_species', nullable: true })
   treeSpecies?: string;
 
-  // Make surfaceArea nullable to avoid schema sync errors when existing rows have null values
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', name: 'surface_area', nullable: true })
   surfaceArea?: number;
 
-  // Geometry column is stored in the DB; map to the existing column name 'geometry' and allow nullable
   @Column({
     name: 'geometry',
     type: 'geometry',
